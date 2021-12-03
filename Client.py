@@ -2,18 +2,25 @@ import pygame
 
 width = 500
 height = 500
-win = pygame.display.set_mode((width,height))
+win = pygame.display.set_mode((width, height))
 pygame.display.set_caption("Client")
 
 clientNumber = 0
-class Player():
-    def __init__(self, x,y,width, height, color):
+
+
+class Coords:
+    def __init__(self, x, y):
         self.x = x
         self.y = y
+
+
+class Player():
+    def __init__(self, coords, width, height, color):
+        self.coords = coords
         self.width = width
         self.heigth = height
         self.color = color
-        self.rect = (x,y,width,height)
+        self.rect = (self.coords.x,self.coords.y,width,height)
         self.vel = 10
     def draw(self, win):
         pygame.draw.rect(win,self.color,self.rect)
@@ -21,17 +28,17 @@ class Player():
         keys = pygame.key.get_pressed()
 
         if keys[pygame.K_LEFT]:
-            self.x -= self.vel
+            self.coords.x -= self.vel
 
         if keys[pygame.K_RIGHT]:
-            self.x += self.vel
+            self.coords.x += self.vel
 
         if keys[pygame.K_UP]:
-            self.y -= self.vel
+            self.coords.y -= self.vel
 
         if keys[pygame.K_DOWN]:
-            self.y += self.vel
-        self.rect = (self.x,self.y,self.heigth,self.heigth)
+            self.coords.y += self.vel
+        self.rect = (self.coords.x,self.coords.y,self.heigth,self.heigth)
 
 def redrawWindow(win,player):
 
@@ -43,7 +50,7 @@ def redrawWindow(win,player):
 
 def main():
     run = True
-    p = Player(1,1,10,10,(0,255,0))
+    p = Player(Coords(1,1),10,10,(0,255,0))
     clock = pygame.time.Clock()
 
 
