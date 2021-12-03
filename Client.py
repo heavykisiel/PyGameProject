@@ -14,13 +14,17 @@ class Coords:
         self.y = y
 
 
-class Player:
-    def __init__(self, coords, width, height, color):
+class Player(pygame.sprite.Sprite):
+    def __init__(self, coords, width, heigth, color):
         self.coords = coords
         self.width = width
-        self.heigth = height
+        self.heigth = heigth
         self.color = color
-        self.rect = (self.coords.x, self.coords.y, width, height)
+        #self.rect = (self.coords.x, self.coords.y, width, heigth)
+        img = pygame.image.load('img/player/player_model.png')
+        self.image = pygame.transform.scale(img, (img.get_width(), img.get_height()))
+        self.rect = self.image.get_rect()
+        self.rect.center = (self.coords.x, self.coords.y)
         self.vel = 10
 
     def draw(self, win):
