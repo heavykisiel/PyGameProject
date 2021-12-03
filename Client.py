@@ -14,16 +14,18 @@ class Coords:
         self.y = y
 
 
-class Player():
+class Player:
     def __init__(self, coords, width, height, color):
         self.coords = coords
         self.width = width
         self.heigth = height
         self.color = color
-        self.rect = (self.coords.x,self.coords.y,width,height)
+        self.rect = (self.coords.x, self.coords.y, width, height)
         self.vel = 10
+
     def draw(self, win):
-        pygame.draw.rect(win,self.color,self.rect)
+        pygame.draw.rect(win, self.color, self.rect)
+
     def move(self):
         keys = pygame.key.get_pressed()
 
@@ -38,21 +40,20 @@ class Player():
 
         if keys[pygame.K_DOWN]:
             self.coords.y += self.vel
-        self.rect = (self.coords.x,self.coords.y,self.heigth,self.heigth)
+        self.rect = (self.coords.x, self.coords.y, self.heigth, self.heigth)
 
-def redrawWindow(win,player):
 
-    win.fill((255,255,255))
+def redrawWindow(win, player):
+
+    win.fill((255, 255, 255))
     player.draw(win)
     pygame.display.update()
 
 
-
 def main():
     run = True
-    p = Player(Coords(1,1),10,10,(0,255,0))
+    p = Player(Coords(1, 1), 10, 10, (0, 255, 0))
     clock = pygame.time.Clock()
-
 
     while run:
         clock.tick(60)
@@ -61,7 +62,7 @@ def main():
                 run = False
                 pygame.quit()
         p.move()
-        redrawWindow(win,p)
+        redrawWindow(win, p)
 
 
 main()
