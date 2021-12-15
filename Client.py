@@ -1,73 +1,293 @@
 import pygame
+from pygame.locals import *
+import random
 
-width = 500
-height = 500
-win = pygame.display.set_mode((width, height))
-pygame.display.set_caption("Client")
-
-clientNumber = 0
+clock = pygame.time.Clock()
+fps = 60
 
 
-class Coords:
-    def __init__(self, x, y):
-        self.x = x
-        self.y = y
+screenWidth = 800
+screenHeight = 800
 
+screen = pygame.display.set_mode((screenWidth,screenHeight))
+pygame.display.set_caption("Makingstupidthings")
+
+red = (255,0,0)
+green = (0,255,0)
+Size = 20
+movingLeft = False
+movingRight = False
+movingUP = False
+movingDOWN = False
+shoot = False
+
+
+background = pygame.image.load("desktop/pygame/image/background.png")
+
+def draw_background():
+    screen.blit(background,(0,0))
 
 class Player(pygame.sprite.Sprite):
-    def __init__(self, coords, width, heigth, color):
-        self.coords = coords
-        self.width = width
-        self.heigth = heigth
-        self.color = color
-        #self.rect = (self.coords.x, self.coords.y, width, heigth)
-        img = pygame.image.load('img/player/player_model.png')
-        self.image = pygame.transform.scale(img, (img.get_width(), img.get_height()))
+    def __init__(self,imgType, x, y, scale, speed, speedBullet):
+        pygame.sprite.Sprite.__init__(self)
+        self.alive = True
+        self.health = 100  
+        self.imgType = imgType
+        self.speed = speed
+        self.speedBullet = speedBullet
+        self.direction = 1
+        self.flip = False
+        image = pygame.image.load(f"desktop/pygame/image/{self.imgType}")
+        self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
         self.rect = self.image.get_rect()
-        self.rect.center = (self.coords.x, self.coords.y)
-        self.vel = 10
+        self.healtMax = 100
+        self.healtMin = self.health
+        self.rect.center = [x,y]
+        self.shootCooldown = 0
+        self.counterOfMoves= 0
+        self.lastShot = pygame.time.get_ticks()
+        self.randomRun = False 
+        self.randomRunCounter = 0
+        self.randomRunCounter2 =0
+        self.visibilityLeft = pygame.Rect(0,0,400,20)  # 50  width 50 hight od jakiej widocznosci
+        self.visibilityRight = pygame.Rect(0,0,400,20)
 
-    def draw(self, win):
-        pygame.draw.rect(win, self.color, self.rect)
+    def move(self, movingLeft, movingRight,movingUP, movingDOWN ):
+        
+        deltax = 0
+        deltay = 0
+        
+        if movingLeft:
+            deltax = -self.speed
+            self.flip = True
+            self.direction = -1
+        if movingRight:
+            deltax = self.speed
+            self.flip = False
+            self.direction = 1
 
-    def move(self):
-        keys = pygame.key.get_pressed()
+        if movingDOWN:
+            deltay = self.speed
+        if movingUP:
+            deltay = -self.speed
+        
 
-        if keys[pygame.K_LEFT]:
-            self.coords.x -= self.vel
+        self.rect.x += deltax
+        self.rect.y += deltay
+    def AI(self):
+        
+        if self.alive and player.alive:
+            if self.randomRun == False and random.randint(1,100) == 1:   #random module losowanie random od 1,100
+                self.randomRun = True
+                self.randomRunCounter = 50
+            if self.visibilityLeft.colliderect(player.rect):
+                self.direction = -1
+                self.shoot()
+            elif self.visibilityRight.colliderect(player.rect):
+                self.direction = 1
+                self.shoot()
+            else:
+                if self.randomRun == False:
+                    aiMovingUP = False
+                    aiMovingDOWN= False
+                    if self.direction == 1:
+                        
+                        aiMovingRight = True
+                                                                                                    #if self.rect.left > 0:
+                                                                                                             #   self.direction = -1
+                                                                                                              #if (self.rect.right+10) < screenWidth:
+                                                                                                                             #    self.direction = 1                                                                                                                              #if (self.rect.bottom + 10) > screenHeig                                                                                                                                  #    aiMovingDOWN = False
+                                                                                                                         #if self.rect.top < 0:
+                                                                                                                                           #  aiMovingDOWN = True
+                    else:
+                        aiMovingRight = False
+                        
+                    
+                    aiMovingLeft = not aiMovingRight
+                        #aiMovingDOWN = not aiMovingUP
+                    self.move(aiMovingLeft, aiMovingRight, aiMovingUP, aiMovingDOWN)
+                    self.counterOfMoves += 1
+                
+                    self.visibilityLeft.center = (self.rect.left - 200,self.rect.centery)
+                    self.visibilityRight.center = (self.rect.left +200, self.rect.centery)
+                    #pygame.draw.rect(screen,red,self.visibilityRight)
+                    #pygame.draw.rect(screen,green,self.visibilityLeft)
 
-        if keys[pygame.K_RIGHT]:
-            self.coords.x += self.vel
-
-        if keys[pygame.K_UP]:
-            self.coords.y -= self.vel
-
-        if keys[pygame.K_DOWN]:
-            self.coords.y += self.vel
-        self.rect = (self.coords.x, self.coords.y, self.heigth, self.heigth)
-
-
-def redrawWindow(win, player):
-
-    win.fill((255, 255, 255))
-    player.draw(win)
-    pygame.display.update()
+                    if self.counterOfMoves > Size:
+                        self.direction *= -1
+                 
+                        self.counterOfMoves *= -1
+                else:
+                    self.randomRunCounter -= 1
+                    
+                    if self.randomRunCounter <= 0:
+                        self.randomRun = False
+                        
 
 
-def main():
-    run = True
-    p = Player(Coords(1, 1), 10, 10, (0, 255, 0))
-    clock = pygame.time.Clock()
+    def check_alive(self):
+        if self.health <= 0:
+            self.health = 0
+            self.speed = 0
+            self.alive = False
+    def shoot(self):
+        
+        if self.shootCooldown ==0:
+            self.shootCooldown = 20
+            bullet = Bullets(self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery, self.direction,self.speedBullet)
+            bulletGroup.add(bullet)
+    def draw(self):
+        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+    def update(self):
+        if self.shootCooldown > 0:
+            self.shootCooldown -= 1
 
-    while run:
-        clock.tick(60)
-        p.move()
-        redrawWindow(win, p)
-        for event in pygame.event.get():
+        self.check_alive()
+        key = pygame.key.get_pressed()
+        #cooldown = 100
+        #time_now = pygame.time.get_ticks()
+        #if key[pygame.K_SPACE] and time_now - self.lastShot > cooldown:
+         #   bullet  = Bullets(self.rect.centerx, self.rect.top)
+         #   bullet_group.add(bullet)
+         #   self.lastShot = time_now
+        speed = 8
+        if self.rect.left > 0:
+            self.rect.x -= speed
+        if (self.rect.right+10) < screenWidth:
+            self.rect.x += speed
+        if (self.rect.bottom + 10) > screenHeight:
+            self.rect.y -= speed
+        if self.rect.top < 0:
+            self.rect.y += speed
+        pygame.draw.rect(screen, red, (self.rect.x,(self.rect.bottom +5),self.rect.width, 5))
+        if self.healtMin >0:
+            pygame.draw.rect(screen, green, (self.rect.x,(self.rect.bottom +5),int(self.rect.width * (self.healtMin / self.healtMax)), 5))
+        if self.health == 0:
+            self.kill()
+class Bullets(pygame.sprite.Sprite):
+    def __init__(self, x, y, direction,speed):
+        pygame.sprite.Sprite.__init__(self)
+        #self.flip = False
+        self.image = pygame.image.load("desktop/pygame/image/bullet1.png")
+        #self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
+        self.rect = self.image.get_rect()
+        self.rect.center = [x,y]
+        self.speed = speed
+        self.direction = direction
+    #def move(self, movingLeft, movingRight):
+    #    deltax = 0
+    #    deltay = 0
 
-            if event.type == pygame.QUIT:
+    #    if movingLeft:
+     #       deltax = -self.speed
+    #        self.flip = True
+     #       self.direction = -1
+     #   if movingRight:
+     #       deltax = self.speed
+     #       self.flip = False
+     #       self.direction = 1
+     #   self.rect.x += deltax
+     #   self.rect.y += deltay
+    def update(self):
+        self.rect.x += (self.direction * self.speed)
+        if self.rect.right < 0 or self.rect.left > screenWidth:
+            self.kill()
+        
+        
+        if pygame.sprite.spritecollide(player, bulletGroup, False):
+            if player.alive:
+                player.health -= 2.5
+                player.healtMin -= 2.5
+                self.kill()
+        for enemy in enemyGroup:        
+            if pygame.sprite.spritecollide(enemy, bulletGroup, False):
+                if enemy.alive:
+                    enemy.healtMin -=20
+                    enemy.health -= 20
+                    print(player.health)
+                    print(enemy.health)
+                    self.kill()
+                
+
+
+#players_group = pygame.sprite.Group()
+bulletGroup = pygame.sprite.Group()
+enemyGroup = pygame.sprite.Group()
+#player = Player(int(screenWidth) / 2 ,  screenHeight - 100, 10, 10 )
+player = Player('playershot.png',200,200,0.7,8,20)
+
+enemy = Player('enemy.png',400,400,0.5,4,4)
+enemy1 = Player('enemy.png',400,400,0.5,4,4)
+enemyGroup.add(enemy)
+enemyGroup.add(enemy1)
+#players_group.add(player)
+#player = Player(200,200,1, 3,8)
+#bullet = Bullets(100, 100, 8 , )
+run=True
+while run:
+
+    clock.tick(fps)
+    draw_background()
+
+    player.move(movingLeft,movingRight,movingUP, movingDOWN)
+    
+    player.draw()
+    player.update()
+    
+    
+    bulletGroup.update()
+    bulletGroup.draw(screen)
+    
+    for enemy in enemyGroup:
+        enemy.AI()
+        enemy.update()
+        enemy.draw()
+        
+
+    if player.alive:
+        if shoot:
+            player.shoot()
+
+
+    for event in pygame.event.get():
+        if event.type==pygame.QUIT:
+            run = False
+        
+        if event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_ESCAPE:
                 run = False
-                pygame.quit()
+            if event.key == pygame.K_LEFT:
+                movingLeft = True
+            if event.key == pygame.K_RIGHT:
+                movingRight = True
+            if event.key == pygame.K_SPACE:
+                shoot = True
+            if event.key == pygame.K_UP:
+                movingUP = True
+            if event.key == pygame.K_DOWN:
+                movingDOWN =  True
+                
+        if event.type == pygame.KEYUP:
+            if event.key == pygame.K_LEFT:
+                movingLeft = False
+            if event.key == pygame.K_RIGHT:
+                movingRight = False
+            if event.key == pygame.K_SPACE:
+                shoot = False
+            if event.key == pygame.K_UP:
+                movingUP = False
+            if event.key == pygame.K_DOWN:
+                movingDOWN =  False
+       
+            
+    
+    #bullet.update()
+
+    
 
 
-main()
+    pygame.display.update()
+pygame.quit()
+
+
+
