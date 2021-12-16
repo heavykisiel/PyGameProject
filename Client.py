@@ -124,7 +124,7 @@ class Player(pygame.sprite.Sprite):
     def healthRegenerator(self):
         if self.healthTimer ==0:
             
-            if player.health < 100:  
+            if player.health < 100 and enemy.shoot == False:  
                 player.health +=1
                 
                 player.healthMin +=1
@@ -304,6 +304,7 @@ class Enemy(pygame.sprite.Sprite):
             self.health = 0
             self.speed = 0
             self.alive = False
+            self.shoot = False
             if player.health <80:
                 player.healthMin +=20
                 player.health +=20
