@@ -22,7 +22,7 @@ movingDOWN = False
 shoot = False
 
 
-background = pygame.image.load("background.png")
+background = pygame.image.load("img/background/background.png")
 
 def draw_background():
     screen.blit(background,(0,0))
@@ -36,9 +36,16 @@ class Player(pygame.sprite.Sprite):
         self.speed = speed
         self.speedBullet = speedBullet
         self.direction = 1
+        #self.vertical = 1
         self.flip = False
-        image = pygame.image.load(f"{self.imgType}")
-        self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
+        self.images = []
+        self.index = 0
+        for i in range(4):
+            img = pygame.image.load(f"img/{self.imgType}/{i}.png")
+            img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height() * scale)))
+            self.images.append(img)
+
+        self.image = self.images[self.index]
         self.rect = self.image.get_rect()
         self.healtMax = 100
         self.healtMin = self.health
@@ -63,13 +70,27 @@ class Player(pygame.sprite.Sprite):
 
         if movingDOWN:
             deltay = self.speed
+            #self.vertical = 1
+            self.direction = 2
         if movingUP:
             deltay = -self.speed
+            #self.vertical = -1
+            self.direction = -2
         
 
         self.rect.x += deltax
         self.rect.y += deltay
-                          
+    def changeImage(self):
+        if self.direction == 1:
+            self.image = self.images[0]
+        if self.direction == -1:
+            self.image = self.images[3]
+        elif self.direction == 2:
+            self.image = self.images[1]
+        elif self.direction == -2:
+            self.image = self.images[2] 
+
+
     def check_alive(self):
         if self.health <= 0:
             self.health = 0
@@ -80,10 +101,20 @@ class Player(pygame.sprite.Sprite):
         
         if self.shootCooldown ==0:
             self.shootCooldown = 20
-            bullet = Bullets(self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery, self.direction,self.speedBullet)
-            bulletGroup.add(bullet)
+            if self.direction == 1 or self.direction == -1:
+                bullet = Bullets("bullet",self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery,2, self.direction,self.speedBullet)
+                bulletGroup.add(bullet)
+            else:
+                if self.direction == 2: 
+                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery  + (0.5 * self.rect.size[0] * self.direction),2, self.direction, self.speedBullet)
+                    bulletGroup.add(bullet)
+                else:
+                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery +(0.5 * self.rect.size[0] * self.direction),2, self.direction, self.speedBullet)
+                    bulletGroup.add(bullet)
+    #def animation(self):
+
     def draw(self):
-        screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
+        screen.blit(self.image, self.rect)
     def update(self):
         if self.shootCooldown > 0:
             self.shootCooldown -= 1
@@ -128,7 +159,7 @@ class Enemy(pygame.sprite.Sprite):
         self.speedBullet = speedBullet
         self.direction = 1
         self.flip = False
-        image = pygame.image.load(f"{self.imgType}")
+        image = pygame.image.load(f"img/enemy/{self.imgType}.png")
         self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
         self.rect = self.image.get_rect()
         self.healtMax = 100
@@ -143,6 +174,8 @@ class Enemy(pygame.sprite.Sprite):
         self.randomRunCounter2 =0
         self.visibilityLeft = pygame.Rect(0,0,400,20)  # 50  width 50 hight od jakiej widocznosci
         self.visibilityRight = pygame.Rect(0,0,400,20)
+        self.visibilityBottom = pygame.Rect(0,0,20,400)
+        self.visibilityTop = pygame.Rect(0,0,20,400)
 
     def move(self, aiMovingLeft, aiMovingRight,aiMovingUP, aiMovingDOWN ):
         
@@ -180,12 +213,20 @@ class Enemy(pygame.sprite.Sprite):
                 self.randomRun = True
                 self.randomRunCounter = 10
             
-            if self.visibilityLeft.colliderect(player.rect):
+            elif self.visibilityLeft.colliderect(player.rect):
                 self.direction = -1
                 self.shoot()
             elif self.visibilityRight.colliderect(player.rect):
                 self.direction = 1
                 self.shoot()
+            elif self.visibilityTop.colliderect(player.rect):
+                self.direction = -2
+                self.shoot()
+            elif self.visibilityBottom.colliderect(player.rect):
+                self.direction = 2
+                self.shoot()
+            
+            
             else:
                 if self.randomRun == False:
                     
@@ -219,8 +260,12 @@ class Enemy(pygame.sprite.Sprite):
                 
                     self.visibilityLeft.center = (self.rect.left - 200,self.rect.centery)
                     self.visibilityRight.center = (self.rect.left +200, self.rect.centery)
+                    self.visibilityTop.center = (self.rect.centerx, self.rect.centery -200)
+                    self.visibilityBottom.center = (self.rect.centerx, self.rect.centery + 200)
                     #pygame.draw.rect(screen,red,self.visibilityRight)
                     #pygame.draw.rect(screen,green,self.visibilityLeft)
+                    #pygame.draw.rect(screen,green,self.visibilityTop)
+                    #pygame.draw.rect(screen,green,self.visibilityBottom)
 
                     
 
@@ -243,8 +288,17 @@ class Enemy(pygame.sprite.Sprite):
         
         if self.shootCooldown ==0:
             self.shootCooldown = 20
-            bullet = Bullets(self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery, self.direction,self.speedBullet)
-            bulletGroup.add(bullet)
+            if self.direction == 1 or self.direction == -1:
+                bullet = Bullets("bullet",self.rect.centerx + (0.75 * self.rect.size[0] * self.direction),self.rect.centery,2, self.direction,self.speedBullet)
+                bulletGroup.add(bullet)
+            else:
+                if self.direction == 2: 
+                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery  + (0.5 * self.rect.size[0] * self.direction) ,2, self.direction, self.speedBullet)
+                    bulletGroup.add(bullet)
+                else:
+                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery +(0.5 * self.rect.size[0] * self.direction),2, self.direction, self.speedBullet)
+                    bulletGroup.add(bullet)
+    
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
     def update(self):
@@ -279,15 +333,17 @@ class Enemy(pygame.sprite.Sprite):
         if self.health == 0:
             self.kill()
 class Bullets(pygame.sprite.Sprite):
-    def __init__(self, x, y, direction,speed):
+    def __init__(self,imgType, x, y, scale, direction,speed):
         pygame.sprite.Sprite.__init__(self)
         #self.flip = False
-        self.image = pygame.image.load("bullet1.png")
-        #self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
+        self.imgType = imgType
+        image = pygame.image.load(f"img/bullet/{self.imgType}.png")
+        self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
         self.rect = self.image.get_rect()
         self.rect.center = [x,y]
         self.speed = speed
         self.direction = direction
+        
     #def move(self, movingLeft, movingRight):
     #    deltax = 0
     #    deltay = 0
@@ -303,7 +359,12 @@ class Bullets(pygame.sprite.Sprite):
      #   self.rect.x += deltax
      #   self.rect.y += deltay
     def update(self):
-        self.rect.x += (self.direction * self.speed)
+        if self.direction == 1 or self.direction == -1:
+            self.rect.x += (self.direction * self.speed)
+        if self.direction == 2 or self.direction == -2:
+            self.rect.y += (self.direction* self.speed)
+        
+            
         if self.rect.right < 0 or self.rect.left > screenWidth:
             self.kill()
         
@@ -329,17 +390,17 @@ class Bullets(pygame.sprite.Sprite):
 bulletGroup = pygame.sprite.Group()
 enemyGroup = pygame.sprite.Group()
 #player = Player(int(screenWidth) / 2 ,  screenHeight - 100, 10, 10 )
-player = Player('playershot.png',200,200,0.7,8,20)
+player = Player('player',200,200,0.7,8,20)
 
-enemy = Enemy('enemy.png',400,400,0.5,4,4)
-enemy1 = Enemy('enemy.png',200,300,0.5,4,4)
-enemy2 = Enemy('enemy.png',100,500,0.5,4,4)
-enemy3 = Enemy('enemy.png',300,100,0.5,4,4)
+enemy = Enemy('enemy',400,400,0.5,4,3)
+enemy1 = Enemy('enemy',200,300,0.5,4,3)
+#enemy2 = Enemy('enemy.png',100,500,0.5,4,4)
+#enemy3 = Enemy('enemy.png',300,100,0.5,4,4)
 
 enemyGroup.add(enemy)
 enemyGroup.add(enemy1)
-enemyGroup.add(enemy2)
-enemyGroup.add(enemy3)
+#enemyGroup.add(enemy2)
+#enemyGroup.add(enemy3)
 
 
 #players_group.add(player)
@@ -352,7 +413,7 @@ while run:
     draw_background()
 
     player.move(movingLeft,movingRight,movingUP, movingDOWN)
-    
+    player.changeImage()
     player.draw()
     player.update()
     if player.health == 0:
