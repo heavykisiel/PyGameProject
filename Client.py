@@ -40,19 +40,20 @@ class Player(pygame.sprite.Sprite):
         self.flip = False
         self.images = []
         self.index = 0
-        for i in range(4):
+        for i in range(6):
             img = pygame.image.load(f"img/{self.imgType}/{i}.png")
             img = pygame.transform.scale(img, (int(img.get_width() * scale), int(img.get_height() * scale)))
             self.images.append(img)
 
         self.image = self.images[self.index]
         self.rect = self.image.get_rect()
-        self.healtMax = 100
-        self.healtMin = self.health
+        self.healthMax = 100
+        self.healthMin = self.health
         self.rect.center = [x,y]
         self.shootCooldown = 0
         self.counterOfMoves= 0
         self.lastShot = pygame.time.get_ticks()
+        self.healthTimer = 0
 
     def move(self, movingLeft, movingRight,movingUP, movingDOWN ):
         
@@ -81,12 +82,20 @@ class Player(pygame.sprite.Sprite):
         self.rect.x += deltax
         self.rect.y += deltay
     def changeImage(self):
-        if self.direction == 1:
+        if self.direction == 1 and shoot == False:
+            self.image = self.images[4]
+        elif self. direction == 1:
             self.image = self.images[0]
-        if self.direction == -1:
+        if self.direction == -1 and shoot == False:
+            self.image = self.images[5]    
+        elif self.direction == -1:
             self.image = self.images[3]
+        elif self.direction == 2 and shoot == False:
+            self.image = self.images[5]
         elif self.direction == 2:
             self.image = self.images[1]
+        elif self.direction == -2 and shoot == False:
+            self.image = self.images[5]
         elif self.direction == -2:
             self.image = self.images[2] 
 
@@ -112,13 +121,24 @@ class Player(pygame.sprite.Sprite):
                     bullet = Bullets("bullet",self.rect.centerx, self.rect.centery +(0.5 * self.rect.size[0] * self.direction),2, self.direction, self.speedBullet)
                     bulletGroup.add(bullet)
     #def animation(self):
-
+    def healthRegenerator(self):
+        if self.healthTimer ==0:
+            
+            if player.health < 100:  
+                player.health +=1
+                
+                player.healthMin +=1
+                self.healthTimer = 50
+                print(self.health)
+                
     def draw(self):
         screen.blit(self.image, self.rect)
     def update(self):
         if self.shootCooldown > 0:
             self.shootCooldown -= 1
-        
+        if self.healthTimer > 0:
+            self.healthTimer -= 1
+        self.healthRegenerator()
         self.check_alive()
         key = pygame.key.get_pressed()
         #cooldown = 100
@@ -137,8 +157,8 @@ class Player(pygame.sprite.Sprite):
         if self.rect.top < 0:
             self.rect.y += self.speed
         pygame.draw.rect(screen, red, (self.rect.x,(self.rect.bottom +5),self.rect.width, 5))
-        if self.healtMin >0:
-            pygame.draw.rect(screen, green, (self.rect.x,(self.rect.bottom +5),int(self.rect.width * (self.healtMin / self.healtMax)), 5))
+        if self.healthMin >0:
+            pygame.draw.rect(screen, green, (self.rect.x,(self.rect.bottom +5),int(self.rect.width * (self.healthMin / self.healthMax)), 5))
         if self.health == 0:
             self.kill()
 
@@ -162,8 +182,8 @@ class Enemy(pygame.sprite.Sprite):
         image = pygame.image.load(f"img/enemy/{self.imgType}.png")
         self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
         self.rect = self.image.get_rect()
-        self.healtMax = 100
-        self.healtMin = self.health
+        self.healthMax = 100
+        self.healthMin = self.health
         self.rect.center = [x,y]
         self.shootCooldown = 0
         self.counterOfMoves= 0
@@ -278,12 +298,16 @@ class Enemy(pygame.sprite.Sprite):
                         self.randomRun = False
                         
 
-
+    
     def check_alive(self):
         if self.health <= 0:
             self.health = 0
             self.speed = 0
             self.alive = False
+            if player.health <80:
+                player.healthMin +=20
+                player.health +=20
+
     def shoot(self):
         
         if self.shootCooldown ==0:
@@ -328,8 +352,8 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.y += self.speed
             self.direction = -1
         pygame.draw.rect(screen, red, (self.rect.x,(self.rect.bottom +5),self.rect.width, 5))
-        if self.healtMin >0:
-            pygame.draw.rect(screen, green, (self.rect.x,(self.rect.bottom +5),int(self.rect.width * (self.healtMin / self.healtMax)), 5))
+        if self.healthMin >0:
+            pygame.draw.rect(screen, green, (self.rect.x,(self.rect.bottom +5),int(self.rect.width * (self.healthMin / self.healthMax)), 5))
         if self.health == 0:
             self.kill()
 class Bullets(pygame.sprite.Sprite):
@@ -372,15 +396,15 @@ class Bullets(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(player, bulletGroup, False):
             if player.alive:
                 player.health -= 2.5
-                player.healtMin -= 2.5
-                
+                player.healthMin -= 2.5
+                #print(player.health)
                 self.kill()
         for enemy in enemyGroup:        
             if pygame.sprite.spritecollide(enemy, bulletGroup, False):
                 if enemy.alive:
-                    enemy.healtMin -=20
+                    enemy.healthMin -=20
                     enemy.health -= 20
-                    print(player.health)
+                    
                     print(enemy.health)
                     self.kill()
                 
