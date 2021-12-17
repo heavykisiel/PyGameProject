@@ -111,14 +111,14 @@ class Player(pygame.sprite.Sprite):
         if self.shootCooldown ==0:
             self.shootCooldown = 20
             if self.direction == 1 or self.direction == -1:
-                bullet = Bullets("bullet",self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery,2, self.direction,self.speedBullet)
+                bullet = Bullets("bullet",self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery,1, self.direction,self.speedBullet)
                 bulletGroup.add(bullet)
             else:
                 if self.direction == 2: 
-                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery  + (0.5 * self.rect.size[0] * self.direction),2, self.direction, self.speedBullet)
+                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery  + (0.5 * self.rect.size[0] * self.direction),1, self.direction, self.speedBullet)
                     bulletGroup.add(bullet)
                 else:
-                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery +(0.5 * self.rect.size[0] * self.direction),2, self.direction, self.speedBullet)
+                    bullet = Bullets("bullet",self.rect.centerx, self.rect.centery +(0.5 * self.rect.size[0] * self.direction),1, self.direction, self.speedBullet)
                     bulletGroup.add(bullet)
     #def animation(self):
     def healthRegenerator(self):   # regeneracja zycia jesli moby nie bija
@@ -344,13 +344,6 @@ class Enemy(pygame.sprite.Sprite):
             self.shootCooldown -= 1
 
         self.check_alive()
-        key = pygame.key.get_pressed()
-        #cooldown = 100
-        #time_now = pygame.time.get_ticks()
-        #if key[pygame.K_SPACE] and time_now - self.lastShot > cooldown:
-         #   bullet  = Bullets(self.rect.centerx, self.rect.top)
-         #   bullet_group.add(bullet)
-         #   self.lastShot = time_now
         
         if self.rect.left > 100:
             self.rect.x -= self.speed
@@ -403,7 +396,7 @@ class Bullets(pygame.sprite.Sprite):
         if self.direction == 1 or self.direction == -1:
             self.rect.x += (self.direction * self.speed)
         if self.direction == 2 or self.direction == -2:
-            self.rect.y += (self.direction* self.speed)
+            self.rect.y += ((self.direction/2)* self.speed)
         
             
         if self.rect.right < 0 or self.rect.left > screenWidth:
@@ -432,10 +425,10 @@ enemyGroup = pygame.sprite.Group()
 #player = Player(int(screenWidth) / 2 ,  screenHeight - 100, 10, 10 )
 player = Player('player',200,200,0.7,8,20)
 
-enemy = Enemy('enemy',400,400,0.5,4,3)
-enemy1 = Enemy('enemy',200,300,0.5,4,3)
-#enemy2 = Enemy('enemy.png',100,500,0.5,4,4)
-#enemy3 = Enemy('enemy.png',300,100,0.5,4,4)
+enemy = Enemy('enemy',400,400,0.6,4,2.5)
+enemy1 = Enemy('enemy',200,300,0.6,4,2.5)
+#enemy2 = Enemy('enemy',100,500,0.6,4,2.5)
+#enemy3 = Enemy('enemy',300,100,0.6,4,2.5)
 
 enemyGroup.add(enemy)
 enemyGroup.add(enemy1)
@@ -506,16 +499,9 @@ while run:
                 movingUP = False
             if event.key == pygame.K_DOWN:
                 movingDOWN =  False
-       
-            
-    
+        
     #bullet.update()
-
-    
-
-
     pygame.display.update()
 pygame.quit()
-
 
 
