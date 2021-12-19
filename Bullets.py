@@ -6,7 +6,6 @@ class Bullets(pygame.sprite.Sprite):
     bulletGroupEnemy = pygame.sprite.Group()
     bulletGroup = pygame.sprite.Group()
     enemyGroup = pygame.sprite.Group()
-    player = Player('player',200,200,0.7,8,20) #Do jebanej poprawy nie wiem gdzie zapisać w kodzie playera, narazie chce żeby to działało wogóle
     def __init__(self,imgType, x, y, scale, direction,speed):
         pygame.sprite.Sprite.__init__(self)
         #self.flip = False

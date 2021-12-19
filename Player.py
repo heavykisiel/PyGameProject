@@ -9,6 +9,7 @@ from Bullets import bulletGroup
 
 shoot = False
 class Player(pygame.sprite.Sprite):
+    
     def __init__(self,imgType, x, y, scale, speed, speedBullet):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
@@ -143,5 +144,7 @@ class Player(pygame.sprite.Sprite):
             pygame.draw.rect(screen, green, (self.rect.x,(self.rect.bottom +5),int(self.rect.width * (self.healthMin / self.healthMax)), 5))
         if self.health == 0:
             self.kill()
+            
 
 
+player = Player('player',200,200,0.7,8,20) #Do jebanej poprawy nie wiem gdzie zapisać w kodzie playera, narazie chce żeby to działało wogóle

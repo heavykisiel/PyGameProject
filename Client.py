@@ -3,8 +3,8 @@ from pygame.locals import *
 import random
 
 import Bullets
-
-
+import Player
+player = Player.player
 
 clock = pygame.time.Clock()
 fps = 60
