@@ -2,6 +2,10 @@ import pygame
 from pygame.locals import *
 import random
 
+import Bullets
+
+
+
 clock = pygame.time.Clock()
 fps = 60
 
@@ -20,6 +24,7 @@ movingRight = False
 movingUP = False
 movingDOWN = False
 shoot = False
+#player = Player(200,200,1, 3,8)
 
 
 background = pygame.image.load("img/background/background.png")
@@ -112,22 +117,22 @@ class Player(pygame.sprite.Sprite):
             self.shootCooldown = 20
             if self.direction == 1 or self.direction == -1:
                 bullet = Bullets("bullet",self.rect.centerx + (0.75 * self.rect.size[0] * self.direction), self.rect.centery,1, self.direction,self.speedBullet)
-                bulletGroup.add(bullet)
+                Bullets.bulletGroup.add(bullet)
             else:
                 if self.direction == 2: 
                     bullet = Bullets("bullet",self.rect.centerx, self.rect.centery  + (0.5 * self.rect.size[0] * self.direction),1, self.direction, self.speedBullet)
-                    bulletGroup.add(bullet)
+                    Bullets.bulletGroup.add(bullet)
                 else:
                     bullet = Bullets("bullet",self.rect.centerx, self.rect.centery +(0.5 * self.rect.size[0] * self.direction),1, self.direction, self.speedBullet)
-                    bulletGroup.add(bullet)
+                    Bullets.bulletGroup.add(bullet)
     #def animation(self):
     def healthRegenerator(self):   # regeneracja zycia jesli moby nie bija
         if self.healthTimer ==0:
             
-            if player.health < 100 and enemy.shoot == False:  
-                player.health +=1
+            if Bullets.player.health < 100 and enemy.shoot == False:  
+                Bullets.player.health +=1
                 
-                player.healthMin +=1
+                Bullets.player.healthMin +=1
                 self.healthTimer = 50
                 print(self.health)
                 
@@ -228,7 +233,7 @@ class Enemy(pygame.sprite.Sprite):
         #aiMovingUP = False
         #aiMovingRight = False
         
-        if self.alive and player.alive:
+        if self.alive and Bullets.player.alive:
             if self.randomRun == False and random.randint(1,100) == 1:   #random module losowanie random od 1,100
                 self.randomRun = True
                 self.randomRunCounter = 500
@@ -237,17 +242,17 @@ class Enemy(pygame.sprite.Sprite):
                 
 
             
-            elif self.visibilityLeft.colliderect(player.rect):
+            elif self.visibilityLeft.colliderect(Bullets.player.rect):
                 self.direction = -1
                 self.shoot()
-            elif self.visibilityRight.colliderect(player.rect):
+            elif self.visibilityRight.colliderect(Bullets.player.rect):
                 self.direction = 1
                 self.shoot()
-            elif self.visibilityTop.colliderect(player.rect):
+            elif self.visibilityTop.colliderect(Bullets.player.rect):
                 self.velocity = -2
                 self.direction = 0
                 self.shoot()
-            elif self.visibilityBottom.colliderect(player.rect):
+            elif self.visibilityBottom.colliderect(Bullets.player.rect):
                 self.velocity = 2
                 self.direction = 0
                 self.shoot()
@@ -318,9 +323,9 @@ class Enemy(pygame.sprite.Sprite):
             self.speed = 0
             self.alive = False
             self.shoot = False
-            if player.health <80:
-                player.healthMin +=20
-                player.health +=20
+            if Bullets.player.health <80:
+                Bullets.player.healthMin +=20
+                Bullets.player.health +=20
 
     def shoot(self):
         
@@ -328,14 +333,14 @@ class Enemy(pygame.sprite.Sprite):
             self.shootCooldown = 30
             if self.direction == 1 or self.direction == -1:
                 bullet = Bullets("bullet",self.rect.centerx + (0.75 * self.rect.size[0] * self.direction),self.rect.centery,2, self.direction,self.speedBullet)
-                bulletGroupEnemy.add(bullet)
+                Bullets.bulletGroupEnemy.add(bullet)
             else:
                 if self.velocity == 2: 
                     bullet = Bullets("bullet",self.rect.centerx, self.rect.centery  + (0.5 * self.rect.size[0] * self.velocity) ,2, self.velocity, self.speedBullet)
-                    bulletGroupEnemy.add(bullet)
+                    Bullets.bulletGroupEnemy.add(bullet)
                 else:
                     bullet = Bullets("bullet",self.rect.centerx, self.rect.centery +(0.5 * self.rect.size[0] * self.velocity),2, self.velocity, self.speedBullet)
-                    bulletGroupEnemy.add(bullet)
+                    Bullets.bulletGroupEnemy.add(bullet)
     
     def draw(self):
         screen.blit(pygame.transform.flip(self.image, self.flip, False), self.rect)
@@ -366,107 +371,35 @@ class Enemy(pygame.sprite.Sprite):
             self.kill()
 
 
-class Bullets(pygame.sprite.Sprite):
-    def __init__(self,imgType, x, y, scale, direction,speed):
-        pygame.sprite.Sprite.__init__(self)
-        #self.flip = False
-        self.imgType = imgType
-        image = pygame.image.load(f"img/bullet/{self.imgType}.png")
-        self.image = pygame.transform.scale(image, (int(image.get_width() * scale), int(image.get_height() * scale)))
-        self.rect = self.image.get_rect()
-        self.rect.center = [x,y]
-        self.speed = speed
-        self.direction = direction
-        
-    #def move(self, movingLeft, movingRight):
-    #    deltax = 0
-    #    deltay = 0
 
-    #    if movingLeft:
-     #       deltax = -self.speed
-    #        self.flip = True
-     #       self.direction = -1
-     #   if movingRight:
-     #       deltax = self.speed
-     #       self.flip = False
-     #       self.direction = 1
-     #   self.rect.x += deltax
-     #   self.rect.y += deltay
-    def update(self):
-        if self.direction == 1 or self.direction == -1:
-            self.rect.x += (self.direction * self.speed)
-        if self.direction == 2 or self.direction == -2:
-            self.rect.y += ((self.direction/2)* self.speed)
-        
-            
-        if self.rect.right < 0 or self.rect.left > screenWidth:
-            self.kill()
-        
-        
-        if pygame.sprite.spritecollide(player, bulletGroupEnemy, False):
-            if player.alive:
-                player.health -= 2.5
-                player.healthMin -= 2.5
-                #print(player.health)
-                self.kill()
-        for enemy in enemyGroup:        
-            if pygame.sprite.spritecollide(enemy, bulletGroup, False):
-                if enemy.alive:
-                    enemy.healthMin -=20
-                    enemy.health -= 20
-                    
-                    print(enemy.health)
-                    self.kill()
-            
-#players_group = pygame.sprite.Group()
-bulletGroupEnemy = pygame.sprite.Group()
-bulletGroup = pygame.sprite.Group()
-enemyGroup = pygame.sprite.Group()
-#player = Player(int(screenWidth) / 2 ,  screenHeight - 100, 10, 10 )
-player = Player('player',200,200,0.7,8,20)
-
-enemy = Enemy('enemy',400,400,0.6,4,2.5)
-enemy1 = Enemy('enemy',200,300,0.6,4,2.5)
-#enemy2 = Enemy('enemy',100,500,0.6,4,2.5)
-#enemy3 = Enemy('enemy',300,100,0.6,4,2.5)
-
-enemyGroup.add(enemy)
-enemyGroup.add(enemy1)
-#enemyGroup.add(enemy2)
-#enemyGroup.add(enemy3)
-
-
-#players_group.add(player)
-#player = Player(200,200,1, 3,8)
-#bullet = Bullets(100, 100, 8 , )
 run=True
 while run:
 
     clock.tick(fps)
     draw_background()
 
-    player.move(movingLeft,movingRight,movingUP, movingDOWN)
-    player.changeImage()
-    player.draw()
-    player.update()
-    if player.health == 0:
+    Bullets.player.move(movingLeft,movingRight,movingUP, movingDOWN)
+    Bullets.player.changeImage()
+    Bullets.player.draw()
+    Bullets.player.update()
+    if Bullets.player.health == 0:
         
         run = False
     
-    bulletGroup.update()
-    bulletGroup.draw(screen)
-    bulletGroupEnemy.update()
-    bulletGroupEnemy.draw(screen)
+    Bullets.bulletGroup.update()
+    Bullets.bulletGroup.draw(screen)
+    Bullets.bulletGroupEnemy.update()
+    Bullets.bulletGroupEnemy.draw(screen)
     
-    for enemy in enemyGroup:
+    for enemy in Bullets.enemyGroup:
         enemy.AI()
         enemy.update()
         enemy.draw()
         
 
-    if player.alive:
+    if Bullets.player.alive:
         if shoot:
-            player.shoot()
+            Bullets.player.shoot()
 
 
     for event in pygame.event.get():
